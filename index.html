@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meu Dinheiro no Tempo – Perfil, orçamento e juros compostos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F4; --panel:#FFFFFF; --ink:#16231D; --muted:#56655D;
+  --line:#CBD6CF; --green:#1F5C43; --green-soft:#DCEBE3;
+  --gold:#B8860B; --gold-soft:#F6E9C6; --field:#FFFFFF; --addon:#E6ECE8;
+  --danger:#A3261B; --on-green:#FFFFFF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101814; --panel:#18231E; --ink:#E9F0EC; --muted:#A3B3AA;
+    --line:#2F3F37; --green:#6CC79C; --green-soft:#1E3A2D;
+    --gold:#E3B341; --gold-soft:#3A3018; --field:#0F1713; --addon:#22302A;
+    --danger:#F08A7E; --on-green:#0F1713;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101814; --panel:#18231E; --ink:#E9F0EC; --muted:#A3B3AA;
+  --line:#2F3F37; --green:#6CC79C; --green-soft:#1E3A2D;
+  --gold:#E3B341; --gold-soft:#3A3018; --field:#0F1713; --addon:#22302A;
+  --danger:#F08A7E; --on-green:#0F1713;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 4.5em)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:clamp(16px,0.9vw + 9px,22px);line-height:1.5;
+}
+a{color:var(--green)}
+/* Topo */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--panel);border-bottom:1px solid var(--line)}
+.top .in{max-width:1200px;margin:0 auto;padding:.6em 1em;display:flex;align-items:center;gap:1em;flex-wrap:wrap}
+.brand{font-weight:700;color:var(--green);font-size:1.1em;margin-right:auto;text-decoration:none}
+nav{display:flex;gap:.3em;flex-wrap:wrap}
+nav a{text-decoration:none;color:var(--ink);padding:.35em .75em;border-radius:999px;font-size:.92em}
+nav a[aria-current="page"]{background:var(--green);color:var(--on-green);font-weight:700}
+nav a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding:1.4em 1em 3em}
+.page{display:none}
+.page.on{display:block}
+h1{font-size:2.1em;line-height:1.1;margin:.2em 0 .3em;color:var(--green)}
+h2{font-size:1.35em;margin:0 0 .5em}
+p{max-width:65ch}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.2em;margin-bottom:1.2em}
+.notice{border-left:5px solid var(--gold);background:var(--gold-soft);border-radius:0 12px 12px 0;padding:.9em 1.1em;margin:1.2em 0}
+.notice p{margin:.2em 0}
+/* Início */
+.steps{display:grid;gap:1em;grid-template-columns:minmax(0,1fr);margin:1.4em 0}
+@media (min-width:800px){.steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.1em;display:flex;flex-direction:column}
+.step .n{font-weight:700;color:var(--gold);font-size:1.6em;line-height:1}
+.step h2{margin:.3em 0 .3em;font-size:1.15em}
+.step p{margin:0 0 1em;flex:1;color:var(--muted)}
+/* Botões */
+button,.btn{font:inherit;font-weight:700;border-radius:10px;padding:.6em 1.2em;cursor:pointer;border:2px solid var(--green);text-decoration:none;display:inline-block;text-align:center}
+.primary{background:var(--green);color:var(--on-green)}
+.ghost{background:transparent;color:var(--green)}
+.btns{display:flex;flex-wrap:wrap;gap:.7em;margin-top:.8em}
+button:disabled{opacity:.45;cursor:not-allowed}
+/* Questionário */
+.progress{height:10px;background:var(--line);border-radius:999px;overflow:hidden;margin:.4em 0 1.2em}
+.progress i{display:block;height:100%;background:var(--green);width:0}
+.qcount{color:var(--muted);font-size:.9em}
+.qtext{font-size:1.3em;font-weight:700;margin:.2em 0 .8em;max-width:40ch}
+.opts{display:grid;gap:.6em}
+.opt{display:flex;gap:.7em;align-items:flex-start;text-align:left;background:var(--field);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:.75em 1em;font-weight:400}
+.opt[aria-pressed="true"]{border-color:var(--green);background:var(--green-soft);font-weight:700}
+.opt .dot{flex:none;width:1.1em;height:1.1em;border-radius:50%;border:2px solid var(--muted);margin-top:.2em}
+.opt[aria-pressed="true"] .dot{border-color:var(--green);background:var(--green)}
+.result h2{font-size:1.1em;color:var(--muted);font-weight:400;margin:0}
+.result .pname{font-size:2.4em;font-weight:700;color:var(--green);line-height:1.1;margin:.1em 0 .4em}
+.scale{display:grid;grid-template-columns:repeat(3,1fr);gap:.4em;margin:1em 0}
+.scale div{padding:.5em;border-radius:10px;text-align:center;background:var(--addon);color:var(--muted);font-size:.9em}
+.scale div.me{background:var(--green);color:var(--on-green);font-weight:700}
+.traits{display:grid;gap:.8em;grid-template-columns:minmax(0,1fr);margin-top:1em}
+@media (min-width:760px){.traits{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.trait{background:var(--green-soft);border-radius:12px;padding:.8em 1em}
+.trait b{display:block}
+/* Campos */
+label{display:block;font-weight:700;margin:0 0 .35em}
+.field{margin-bottom:1em}
+.row{display:flex;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--field)}
+.row:focus-within{border-color:var(--green)}
+.addon{background:var(--addon);padding:.5em .8em;display:flex;align-items:center;color:var(--muted);font-weight:700;min-width:3.2em;justify-content:center}
+.row input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1.1em;padding:.45em .7em;outline:none}
+.row select{border:0;border-left:2px solid var(--line);background:var(--addon);color:var(--ink);font:inherit;padding:0 .7em;cursor:pointer}
+.hint{font-size:.82em;color:var(--muted);margin-top:.3em}
+.error{color:var(--danger);font-weight:700;min-height:1.2em;margin-top:.6em}
+.two{display:grid;gap:1.2em;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.two{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
+.group{border:1px solid var(--line);border-radius:12px;padding:1em;margin-bottom:1em}
+.group legend{font-weight:700;padding:0 .4em;color:var(--green)}
+.big{font-size:2.4em;font-weight:700;color:var(--green);line-height:1.05;margin:.1em 0 .3em;word-break:break-word}
+.big.neg{color:var(--danger)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:.8em;margin:1em 0}
+.split div{padding:.7em .9em;border-radius:10px}
+.split .inv{background:var(--green-soft)}
+.split .jur{background:var(--gold-soft)}
+.split span{display:block;font-size:.85em;color:var(--muted)}
+.split strong{font-size:1.3em}
+.bar{display:flex;height:22px;border-radius:999px;overflow:hidden;background:var(--line)}
+.bar i{display:block;height:100%}
+.bar .a{background:var(--green)} .bar .b{background:var(--gold)}
+.legend{display:flex;gap:1.2em;font-size:.85em;color:var(--muted);margin-top:.4em;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:.8em;height:.8em;border-radius:3px;margin-right:.35em;vertical-align:-.05em}
+.legend .la::before{background:var(--green)} .legend .lb::before{background:var(--gold)}
+input[type=range]{width:100%;accent-color:var(--green)}
+.pctline{display:flex;justify-content:space-between;align-items:baseline;gap:1em}
+.pctline strong{font-size:1.5em;color:var(--green)}
+.chart{width:100%;overflow-x:auto;margin-top:1em}
+.chart svg{display:block;width:100%;min-width:520px;height:auto}
+.tscroll{overflow:auto;max-height:22em;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.9em}
+th,td{padding:.45em .7em;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{position:sticky;top:0;background:var(--addon);z-index:1}
+tbody tr.year td{font-weight:700;background:var(--green-soft)}
+.toggle{display:flex;gap:.5em;margin-bottom:.6em;flex-wrap:wrap}
+.toggle button{padding:.35em .9em;font-size:.85em}
+.toggle button[aria-pressed="true"]{background:var(--green);color:var(--on-green)}
+.toggle button[aria-pressed="false"]{background:transparent;color:var(--green)}
+.chips{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.chips button{padding:.3em .8em;font-size:.85em;background:transparent;color:var(--green)}
+.retgrid{display:grid;gap:.8em;grid-template-columns:minmax(0,1fr)}
+@media (min-width:700px){.retgrid{grid-template-columns:1fr 1fr}}
+.retcard{padding:.9em 1em;border-radius:10px;background:var(--green-soft)}
+.retcard strong{display:block;font-size:1.5em;color:var(--green)}
+.retcard p{margin:.2em 0 0;font-size:.85em;color:var(--muted)}
+.ideas{display:grid;gap:.6em;grid-template-columns:minmax(0,1fr);margin-top:.6em}
+@media (min-width:760px){.ideas{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.idea{background:var(--field);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:.7em .9em;text-align:left;font-weight:400}
+.idea b{display:block;color:var(--green)}
+footer{max-width:1200px;margin:0 auto;padding:0 1em 2em;color:var(--muted);font-size:.85em}
+@media (prefers-reduced-motion:no-preference){.bar i,.progress i{transition:width .4s ease}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a class="brand" href="#inicio">Meu Dinheiro no Tempo</a>
+    <nav aria-label="Seções">
+      <a href="#inicio" data-p="inicio">Início</a>
+      <a href="#perfil" data-p="perfil">Meu perfil</a>
+      <a href="#orcamento" data-p="orcamento">Quanto sobra</a>
+      <a href="#calculadora" data-p="calculadora">Calculadora</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- INÍCIO -->
+<section class="page" id="p-inicio">
+  <h1>Como o dinheiro se comporta com o tempo?</h1>
+  <p>Este site é uma atividade de aula. Em três passos você descobre como lida com risco, vê quanto do seu dinheiro sobra no mês e testa na calculadora o que acontece quando um valor fica guardado rendendo juros compostos.</p>
+
+  <div class="steps">
+    <div class="step"><span class="n">1</span><h2>Meu perfil</h2><p>Responda 8 perguntas rápidas sobre como você pensa e reage com dinheiro.</p><a class="btn primary" href="#perfil">Começar o questionário</a></div>
+    <div class="step"><span class="n">2</span><h2>Quanto sobra</h2><p>Anote o que entra e o que sai no seu mês e veja quanto poderia ser separado.</p><a class="btn ghost" href="#orcamento">Ir para o orçamento</a></div>
+    <div class="step"><span class="n">3</span><h2>Calculadora</h2><p>Teste valores, taxas e prazos e veja quanto vem do seu bolso e quanto vem dos juros.</p><a class="btn ghost" href="#calculadora">Abrir a calculadora</a></div>
+  </div>
+
+  <div class="notice">
+    <p><b>Para deixar claro</b></p>
+    <p>Este site é só para aprender. Ele não indica, não recomenda e não incentiva nenhum investimento, banco ou produto financeiro. As taxas usadas são exemplos para estudo.</p>
+    <p>Suas respostas ficam apenas no seu aparelho. Nada é enviado ou guardado em servidor.</p>
+  </div>
+</section>
+
+<!-- PERFIL -->
+<section class="page" id="p-perfil">
+  <h1>Meu perfil</h1>
+  <p class="muted">Não existe resposta certa ou errada. Marque o que mais combina com você hoje.</p>
+
+  <div class="panel" id="quiz">
+    <div class="qcount" id="qcount">Pergunta 1 de 8</div>
+    <div class="progress" aria-hidden="true"><i id="qbar"></i></div>
+    <div class="qtext" id="qtext"></div>
+    <div class="opts" id="qopts" role="group" aria-labelledby="qtext"></div>
+    <div class="btns">
+      <button class="ghost" id="qprev">Voltar</button>
+      <button class="primary" id="qnext" disabled>Próxima</button>
+    </div>
+  </div>
+
+  <div class="panel result" id="qresult" hidden>
+    <h2>Seu perfil neste momento é</h2>
+    <div class="pname" id="pname"></div>
+    <div class="scale" aria-hidden="true"><div data-k="c">Conservador</div><div data-k="m">Moderado</div><div data-k="a">Arrojado</div></div>
+    <p id="pdesc"></p>
+    <div class="traits" id="ptraits"></div>
+    <div class="notice">
+      <p>Perfil não é rótulo. Ele muda com a idade, com a renda, com os objetivos e com o quanto a pessoa aprende sobre dinheiro. Serve só para você se conhecer um pouco melhor.</p>
+    </div>
+    <div class="btns">
+      <a class="btn primary" href="#orcamento">Próximo passo: quanto sobra</a>
+      <button class="ghost" id="qredo">Refazer o questionário</button>
+    </div>
+  </div>
+</section>
+
+<!-- ORÇAMENTO -->
+<section class="page" id="p-orcamento">
+  <h1>Quanto sobra no meu mês?</h1>
+  <p class="muted">Use valores aproximados. Se algum item não existe para você, deixe em branco.</p>
+
+  <div class="two">
+    <div class="panel">
+      <fieldset class="group">
+        <legend>O que entra por mês</legend>
+        <div class="field"><label for="e1">Mesada ou ajuda da família</label><div class="row"><span class="addon">R$</span><input id="e1" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="field"><label for="e2">Trabalho, estágio ou jovem aprendiz</label><div class="row"><span class="addon">R$</span><input id="e2" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="field"><label for="e3">Bicos, vendas e outros</label><div class="row"><span class="addon">R$</span><input id="e3" inputmode="decimal" placeholder="0,00"></div></div>
+      </fieldset>
+      <fieldset class="group">
+        <legend>O que sai por mês</legend>
+        <div class="field"><label for="s1">Transporte</label><div class="row"><span class="addon">R$</span><input id="s1" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="field"><label for="s2">Celular e internet</label><div class="row"><span class="addon">R$</span><input id="s2" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="field"><label for="s3">Lanches e alimentação fora de casa</label><div class="row"><span class="addon">R$</span><input id="s3" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="field"><label for="s4">Ajuda nas contas de casa</label><div class="row"><span class="addon">R$</span><input id="s4" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="field"><label for="s5">Lazer, jogos, assinaturas e compras</label><div class="row"><span class="addon">R$</span><input id="s5" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="field"><label for="s6">Parcelas e outros gastos</label><div class="row"><span class="addon">R$</span><input id="s6" inputmode="decimal" placeholder="0,00"></div></div>
+      </fieldset>
+    </div>
+
+    <div class="panel" aria-live="polite">
+      <p class="muted" style="margin:0">Sobra no mês</p>
+      <div class="big" id="sobra">R$ 0,00</div>
+      <div class="split">
+        <div class="inv"><span>Entra</span><strong id="oEnt">R$ 0,00</strong></div>
+        <div class="jur"><span>Sai</span><strong id="oSai">R$ 0,00</strong></div>
+      </div>
+      <p id="oMsg" class="muted">Preencha os valores ao lado para ver o resultado.</p>
+
+      <div id="oSep" hidden>
+        <h2 style="margin-top:1em">Quanto da sobra você separaria?</h2>
+        <div class="pctline"><span>Parte da sobra</span><strong id="pctTxt">50%</strong></div>
+        <input type="range" id="pct" min="0" max="100" step="5" value="50" aria-label="Porcentagem da sobra a separar">
+        <p>Separando essa parte, seriam <b id="sepVal">R$ 0,00</b> por mês. Em 12 meses, sem juros nenhum, dariam <b id="sep12">R$ 0,00</b>.</p>
+        <p class="muted" style="font-size:.9em">Muita gente separa primeiro uma reserva para imprevistos, antes de pensar em qualquer outra coisa.</p>
+        <div class="btns"><button class="primary" id="toCalc">Levar esse valor para a calculadora</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CALCULADORA -->
+<section class="page" id="p-calculadora">
+  <h1>Calculadora de Juros Compostos</h1>
+  <p class="muted">Simule quanto um valor guardado todo mês pode crescer com o tempo e veja a parte que vem do seu bolso e a parte que vem dos juros.</p>
+
+  <div class="two">
+    <div class="panel">
+      <div class="field"><label for="ini">Valor inicial</label><div class="row"><span class="addon">R$</span><input id="ini" inputmode="decimal" value="0,00"></div><div class="hint">Quanto já tem guardado hoje. Pode deixar zero.</div></div>
+      <div class="field"><label for="mes">Valor mensal</label><div class="row"><span class="addon">R$</span><input id="mes" inputmode="decimal" value="100,00"></div><div class="hint">Quanto guardaria todo mês.</div></div>
+      <div class="field">
+        <label for="taxa">Taxa de juros</label>
+        <div class="row"><span class="addon">%</span><input id="taxa" inputmode="decimal" value="10"><select id="tipoTaxa" aria-label="Tipo da taxa"><option value="a">ao ano</option><option value="m">ao mês</option></select></div>
+        <div class="hint">Taxas de exemplo para comparar:</div>
+        <div class="chips" id="chips"><button data-t="0">0% (dinheiro parado)</button><button data-t="6">6% ao ano</button><button data-t="10">10% ao ano</button><button data-t="14">14% ao ano</button></div>
+      </div>
+      <div class="field"><label for="per">Período</label><div class="row"><input id="per" inputmode="numeric" value="5"><select id="tipoPer" aria-label="Unidade do período"><option value="a">ano(s)</option><option value="m">mês(es)</option></select></div></div>
+      <div class="btns">
+        <button class="primary" id="calc">Calcular</button>
+        <button class="ghost" id="btnRet">Simular retiradas mensais</button>
+      </div>
+      <div class="error" id="err" role="alert"></div>
+      <div class="notice">
+        <p><b>Cuidado com a taxa</b></p>
+        <p>Taxa anual não é a mensal vezes 12. Pelos juros compostos, 12% ao ano equivale a cerca de 0,95% ao mês, e 1% ao mês dá 12,68% ao ano.</p>
+        <p id="conv"></p>
+      </div>
+    </div>
+
+    <div class="panel" aria-live="polite">
+      <p class="muted" style="margin:0" id="leadTxt">Valor total no final</p>
+      <div class="big" id="total">R$ 0,00</div>
+      <div class="bar" aria-hidden="true"><i class="a" id="barA" style="width:100%"></i><i class="b" id="barB" style="width:0"></i></div>
+      <div class="legend"><span class="la">Dinheiro guardado por você</span><span class="lb">Juros ganhos</span></div>
+      <div class="split">
+        <div class="inv"><span>Total guardado</span><strong id="tInv">R$ 0,00</strong></div>
+        <div class="jur"><span>Total em juros</span><strong id="tJur">R$ 0,00</strong></div>
+      </div>
+      <h2 style="margin-top:1em">Evolução</h2>
+      <div class="chart" id="chart"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="ret" hidden>
+    <h2>Retiradas mensais</h2>
+    <div class="field" style="max-width:28em"><label for="anosRet">Retirar durante quantos anos?</label><div class="row"><input id="anosRet" inputmode="numeric" value="5"><span class="addon">anos</span></div></div>
+    <div class="retgrid">
+      <div class="retcard"><span>Retirando só os juros</span><strong id="rPerp">R$ 0,00</strong><p>Tirando esse valor todo mês, o total guardado não diminui (mantida a mesma taxa).</p></div>
+      <div class="retcard"><span id="rPrazoLbl">Para zerar em 5 anos</span><strong id="rPrazo">R$ 0,00</strong><p>Tirando esse valor todo mês, o dinheiro acaba exatamente no prazo escolhido.</p></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Experimentos para fazer</h2>
+    <p class="muted">Toque em um deles para preencher a calculadora e compare os resultados.</p>
+    <div class="ideas">
+      <button class="idea" data-x="tempo"><b>O poder do tempo</b>R$ 100 por mês a 10% ao ano, por 5, 10 e 20 anos. Os juros crescem na mesma proporção?</button>
+      <button class="idea" data-x="parado"><b>Dinheiro parado</b>R$ 100 por mês a 0% por 10 anos. Compare com o mesmo valor a 10% ao ano.</button>
+      <button class="idea" data-x="cedo"><b>Começar cedo ou tarde</b>R$ 200 por mês por 30 anos ou R$ 400 por mês por 15 anos, ambos a 10% ao ano. Quem termina com mais?</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Mês a mês</h2>
+    <div class="toggle"><button id="vMes" aria-pressed="false">Ver por mês</button><button id="vAno" aria-pressed="true">Ver por ano</button></div>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Período</th><th>Juros no período</th><th>Total guardado</th><th>Total em juros</th><th>Total acumulado</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="notice"><p>Os resultados são simulações matemáticas com taxa fixa. Na vida real as taxas mudam, podem existir impostos e taxas, e nenhum rendimento é garantido. Este site não indica nenhum investimento.</p></div>
+</section>
+
+</main>
+<footer>Atividade educativa de educação financeira. Nenhum dado é enviado: tudo é calculado no seu próprio aparelho.</footer>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const pct = v => v.toLocaleString('pt-BR',{maximumFractionDigits:4}) + '%';
+  const fmtIn = v => v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function num(s){
+    s = String(s||'').trim().replace(/\s|R\$/g,'');
+    if(!s) return 0;
+    if(s.includes(',')) s = s.replace(/\./g,'').replace(',','.');
+    const n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+  const store = {
+    get(k){ try{ return JSON.parse(localStorage.getItem('mdt_'+k)); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem('mdt_'+k, JSON.stringify(v)); }catch(e){} }
+  };
+
+  /* ---------- Navegação ---------- */
+  const pages = ['inicio','perfil','orcamento','calculadora'];
+  function route(){
+    let p = location.hash.replace('#','');
+    if(!pages.includes(p)) p = 'inicio';
+    pages.forEach(x=>{ $('p-'+x).classList.toggle('on', x===p); });
+    document.querySelectorAll('nav a').forEach(a=>{
+      if(a.dataset.p===p) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
+    });
+    window.scrollTo(0,0);
+    if(p==='calculadora') calc();
+  }
+  window.addEventListener('hashchange', route);
+
+  /* ---------- Questionário ---------- */
+  const Q = [
+    {q:'Se você ganhasse R$ 1.000 hoje, o que faria?', o:['Gastaria quase tudo com coisas que quero agora','Gastaria uma parte e guardaria outra parte','Guardaria a maior parte para usar mais para frente','Guardaria quase tudo pensando em fazer esse dinheiro crescer']},
+    {q:'Por quanto tempo você conseguiria deixar um dinheiro guardado sem mexer nele?', o:['Menos de 1 ano','De 1 a 3 anos','De 3 a 5 anos','Mais de 5 anos']},
+    {q:'Imagine que um dinheiro seu diminuiu 10% em um mês, mas poderia se recuperar depois. Como você reagiria?', o:['Ficaria muito nervoso e tiraria tudo na hora','Ficaria preocupado e pensaria em tirar','Esperaria com calma para ver se melhora','Entenderia que sobe e desce faz parte e manteria']},
+    {q:'O que é mais importante para você com o seu dinheiro?', o:['Não perder nada, nunca','Crescer um pouco, mas com bastante segurança','Equilíbrio entre segurança e crescimento','Crescer mais, mesmo aceitando altos e baixos']},
+    {q:'Quanto você entende sobre juros e dinheiro hoje?', o:['Quase nada','O básico, como juros e porcentagem','Entendo bem e procuro aprender mais','Entendo bastante e acompanho o assunto']},
+    {q:'Você tem algum dinheiro guardado para imprevistos?', o:['Não tenho nada guardado','Tenho um pouco, para emergências pequenas','Tenho o suficiente para alguns meses de gastos','Tenho reserva e ainda sobra dinheiro']},
+    {q:'Para que você guardaria dinheiro?', o:['Para algo que quero comprar logo, em poucos meses','Para um objetivo em 1 ou 2 anos, como um curso ou viagem','Para algo maior, como carro ou faculdade','Para o meu futuro distante, daqui a muitos anos']},
+    {q:'No dia a dia, como você lida com riscos?', o:['Evito qualquer risco','Arrisco só quando tenho certeza','Arrisco quando acho que vale a pena','Gosto de desafios e aceito arriscar']}
+  ];
+  const P = {
+    c:{n:'Conservador',d:'Você dá muito valor à segurança. Prefere saber exatamente o que vai acontecer com o seu dinheiro e se sente desconfortável com perdas, mesmo pequenas.',t:[['Prioridade','Proteger o que já tem'],['Com sobe e desce','Fica desconfortável e prefere estabilidade'],['Prazo','Costuma pensar mais no curto prazo']]},
+    m:{n:'Moderado',d:'Você busca equilíbrio. Aceita alguma variação no caminho se isso fizer sentido para os seus objetivos, mas sem abrir mão de uma boa dose de segurança.',t:[['Prioridade','Equilibrar segurança e crescimento'],['Com sobe e desce','Aceita um pouco, com cautela'],['Prazo','Pensa no médio prazo']]},
+    a:{n:'Arrojado',d:'Você tolera bem a incerteza e pensa no longo prazo. Aceita ver o valor subir e descer no caminho em troca da chance de crescer mais com o tempo.',t:[['Prioridade','Fazer o dinheiro crescer com o tempo'],['Com sobe e desce','Encara como parte do caminho'],['Prazo','Pensa no longo prazo']]}
+  };
+  let ans = store.get('ans') || new Array(Q.length).fill(null), qi = 0;
+  if(!Array.isArray(ans) || ans.length!==Q.length) ans = new Array(Q.length).fill(null);
+
+  function drawQ(){
+    $('qcount').textContent = 'Pergunta '+(qi+1)+' de '+Q.length;
+    $('qbar').style.width = (ans.filter(a=>a!==null).length/Q.length*100)+'%';
+    $('qtext').textContent = Q[qi].q;
+    const box = $('qopts'); box.innerHTML = '';
+    Q[qi].o.forEach((t,k)=>{
+      const b = document.createElement('button');
+      b.className='opt'; b.type='button';
+      b.setAttribute('aria-pressed', ans[qi]===k ? 'true':'false');
+      b.innerHTML = '<span class="dot"></span><span></span>'; b.lastChild.textContent = t;
+      b.addEventListener('click',()=>{ ans[qi]=k; store.set('ans',ans); drawQ(); });
+      box.appendChild(b);
+    });
+    $('qprev').disabled = qi===0;
+    $('qnext').disabled = ans[qi]===null;
+    $('qnext').textContent = qi===Q.length-1 ? 'Ver meu perfil' : 'Próxima';
+  }
+  function showResult(){
+    const s = ans.reduce((a,b)=>a+(b+1),0); // 8 a 32
+    const k = s<=15 ? 'c' : s<=24 ? 'm' : 'a';
+    const p = P[k];
+    $('pname').textContent = p.n;
+    $('pdesc').textContent = p.d;
+    document.querySelectorAll('.scale div').forEach(d=>d.classList.toggle('me', d.dataset.k===k));
+    $('ptraits').innerHTML = p.t.map(t=>'<div class="trait"><b>'+t[0]+'</b>'+t[1]+'</div>').join('');
+    $('quiz').hidden = true; $('qresult').hidden = false;
+  }
+  $('qprev').addEventListener('click',()=>{ if(qi>0){qi--;drawQ();} });
+  $('qnext').addEventListener('click',()=>{
+    if(ans[qi]===null) return;
+    if(qi<Q.length-1){ qi++; drawQ(); } else { showResult(); }
+  });
+  $('qredo').addEventListener('click',()=>{
+    ans = new Array(Q.length).fill(null); store.set('ans',ans); qi=0;
+    $('qresult').hidden = true; $('quiz').hidden = false; drawQ();
+  });
+  if(ans.every(a=>a!==null)) showResult(); else { qi = Math.max(0, ans.findIndex(a=>a===null)); drawQ(); }
+
+  /* ---------- Orçamento ---------- */
+  const E = ['e1','e2','e3'], S = ['s1','s2','s3','s4','s5','s6'];
+  const saved = store.get('orc') || {};
+  [...E,...S].forEach(id=>{ if(saved[id]) $(id).value = saved[id]; $(id).addEventListener('input', orc); });
+  if(saved.pct!=null) $('pct').value = saved.pct;
+  $('pct').addEventListener('input', orc);
+  let sepMensal = 0;
+  function orc(){
+    const sum = ids => ids.reduce((a,id)=>{ const v=num($(id).value); return a+(isNaN(v)?0:Math.max(0,v)); },0);
+    const ent = sum(E), sai = sum(S), sob = ent - sai;
+    $('oEnt').textContent = brl(ent); $('oSai').textContent = brl(sai);
+    $('sobra').textContent = brl(sob); $('sobra').classList.toggle('neg', sob<0);
+    const p = Number($('pct').value);
+    $('pctTxt').textContent = p+'%';
+    const data = {pct:p}; [...E,...S].forEach(id=>data[id]=$(id).value); store.set('orc',data);
+    if(ent===0 && sai===0){ $('oMsg').textContent='Preencha os valores ao lado para ver o resultado.'; $('oSep').hidden=true; return; }
+    if(sob<0){ $('oMsg').textContent='Os gastos estão maiores que o que entra. Antes de pensar em guardar, vale olhar quais gastos dá para diminuir.'; $('oSep').hidden=true; return; }
+    if(sob===0){ $('oMsg').textContent='Tudo o que entra está sendo gasto. Mesmo um valor pequeno separado todo mês já faz diferença com o tempo.'; $('oSep').hidden=true; return; }
+    $('oMsg').textContent = 'Sobram '+brl(sob)+' por mês, ou seja, '+Math.round(sob/ent*100)+'% do que entra.';
+    $('oSep').hidden = false;
+    sepMensal = Math.round(sob*p)/100;
+    $('sepVal').textContent = brl(sepMensal); $('sep12').textContent = brl(sepMensal*12);
+  }
+  orc();
+  $('toCalc').addEventListener('click',()=>{ $('mes').value = fmtIn(sepMensal); location.hash='#calculadora'; });
+
+  /* ---------- Calculadora ---------- */
+  let rows = [], view = 'a', last = null;
+  function calc(){
+    $('err').textContent = '';
+    const P0 = num($('ini').value), A = num($('mes').value), t = num($('taxa').value), p = num($('per').value);
+    if([P0,A,t,p].some(isNaN)){ $('err').textContent='Algum campo tem um número inválido. Use apenas números, como 1.500,00.'; return; }
+    if(P0<0||A<0||t<0){ $('err').textContent='Os valores não podem ser negativos.'; return; }
+    const n = Math.round($('tipoPer').value==='a' ? p*12 : p);
+    if(n<1){ $('err').textContent='O período precisa ser de pelo menos 1 mês.'; return; }
+    if(n>1200){ $('err').textContent='Use um período de até 100 anos.'; return; }
+    const i = $('tipoTaxa').value==='a' ? Math.pow(1+t/100,1/12)-1 : t/100;
+    $('conv').textContent = 'Taxa desta simulação: '+pct(i*100)+' ao mês = '+pct((Math.pow(1+i,12)-1)*100)+' ao ano.';
+    rows=[]; let saldo=P0, inv=P0, jurT=0;
+    for(let k=1;k<=n;k++){ const j=saldo*i; saldo+=j+A; inv+=A; jurT+=j; rows.push({k,j,inv,jurT,saldo}); }
+    last = {saldo,inv,jurT,i,n};
+    $('total').textContent = brl(saldo);
+    $('leadTxt').textContent = 'Valor total depois de '+(n%12===0 ? (n/12)+(n/12===1?' ano':' anos') : n+(n===1?' mês':' meses'));
+    $('tInv').textContent = brl(inv); $('tJur').textContent = brl(jurT);
+    const pa = saldo>0 ? inv/saldo*100 : 100;
+    $('barA').style.width = pa+'%'; $('barB').style.width = (100-pa)+'%';
+    drawTable(); drawChart(); updRet();
+  }
+  function drawTable(){
+    let h='';
+    if(view==='m'){
+      rows.forEach(r=>{ h+='<tr'+(r.k%12===0?' class="year"':'')+'><td>Mês '+r.k+(r.k%12===0?' (ano '+r.k/12+')':'')+'</td><td>'+brl(r.j)+'</td><td>'+brl(r.inv)+'</td><td>'+brl(r.jurT)+'</td><td>'+brl(r.saldo)+'</td></tr>'; });
+    } else {
+      let acc=0;
+      rows.forEach((r,x)=>{ acc+=r.j; if(r.k%12===0||x===rows.length-1){ h+='<tr><td>'+(r.k%12===0?'Ano '+r.k/12:'Mês '+r.k)+'</td><td>'+brl(acc)+'</td><td>'+brl(r.inv)+'</td><td>'+brl(r.jurT)+'</td><td>'+brl(r.saldo)+'</td></tr>'; acc=0; } });
+    }
+    $('tbody').innerHTML = h || '<tr><td colspan="5">Preencha os campos e toque em Calcular.</td></tr>';
+  }
+  function drawChart(){
+    const W=760,H=320,L=90,R=16,T=16,B=44, n=rows.length;
+    if(!n){ $('chart').innerHTML=''; return; }
+    const max = rows[n-1].saldo || 1;
+    const step = n<=24 ? 1 : n<=120 ? 12 : Math.ceil(n/12/20)*12;
+    const pts = rows.filter(r=>r.k%step===0||r.k===n);
+    const bw=(W-L-R)/pts.length, y=v=>T+(H-T-B)*(1-v/max);
+    let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Gráfico: dinheiro guardado e juros acumulados ao longo do tempo">';
+    for(let g=0;g<=4;g++){ const v=max*g/4, yy=y(v);
+      s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="var(--line)"/>';
+      s+='<text x="'+(L-8)+'" y="'+(yy+5)+'" text-anchor="end" font-size="14" fill="var(--muted)">'+brl(v).replace(/,\d\d$/,'')+'</text>'; }
+    const every=Math.ceil(pts.length/12);
+    pts.forEach((r,x)=>{ const xx=L+x*bw+bw*.12, w=bw*.76, yI=y(r.inv), yT=y(r.saldo);
+      s+='<rect x="'+xx+'" y="'+yI+'" width="'+w+'" height="'+(H-B-yI)+'" fill="var(--green)"/>';
+      s+='<rect x="'+xx+'" y="'+yT+'" width="'+w+'" height="'+Math.max(0,yI-yT)+'" fill="var(--gold)"/>';
+      if(x%every===0||x===pts.length-1){ const lbl = step>=12&&r.k%12===0 ? (r.k/12)+'a' : r.k+'m';
+        s+='<text x="'+(xx+w/2)+'" y="'+(H-B+22)+'" text-anchor="middle" font-size="14" fill="var(--muted)">'+lbl+'</text>'; } });
+    $('chart').innerHTML = s+'</svg>';
+  }
+  function updRet(){
+    if(!last) return;
+    let yrs=num($('anosRet').value); if(isNaN(yrs)||yrs<0) yrs=0;
+    const m=Math.round(yrs*12), {saldo,i}=last;
+    $('rPerp').textContent = brl(saldo*i);
+    $('rPrazoLbl').textContent = 'Para zerar em '+yrs.toLocaleString('pt-BR')+' ano(s)';
+    $('rPrazo').textContent = brl(m>0 ? (i>0 ? saldo*i/(1-Math.pow(1+i,-m)) : saldo/m) : 0);
+  }
+  function setCalc(ini,mes,taxa,per){ $('ini').value=fmtIn(ini); $('mes').value=fmtIn(mes); $('taxa').value=String(taxa).replace('.',','); $('tipoTaxa').value='a'; $('per').value=per; $('tipoPer').value='a'; calc(); $('total').scrollIntoView({behavior:'smooth',block:'center'}); }
+
+  $('calc').addEventListener('click', calc);
+  ['ini','mes','taxa','per'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') calc(); }));
+  $('btnRet').addEventListener('click',()=>{ calc(); if(!last) return; $('ret').hidden=false; updRet(); $('ret').scrollIntoView({behavior:'smooth',block:'start'}); });
+  $('anosRet').addEventListener('input', updRet);
+  $('chips').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; $('taxa').value=b.dataset.t; $('tipoTaxa').value='a'; calc(); });
+  document.querySelectorAll('.idea').forEach(b=>b.addEventListener('click',()=>{
+    const x=b.dataset.x;
+    if(x==='tempo') setCalc(0,100,10,10);
+    if(x==='parado') setCalc(0,100,0,10);
+    if(x==='cedo') setCalc(0,200,10,30);
+  }));
+  $('vMes').addEventListener('click',()=>{view='m';$('vMes').setAttribute('aria-pressed','true');$('vAno').setAttribute('aria-pressed','false');drawTable();});
+  $('vAno').addEventListener('click',()=>{view='a';$('vAno').setAttribute('aria-pressed','true');$('vMes').setAttribute('aria-pressed','false');drawTable();});
+
+  route();
+})();
+</script>
+</body>
+</html>
